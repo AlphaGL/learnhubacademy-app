@@ -11,7 +11,9 @@ build/
 .vscode/
 
 # Secrets — never commit these
-**/google-services.json
+# (google-services.json is intentionally NOT listed here — its contents ship
+# inside the compiled APK anyway, so Google doesn't treat it as secret, and
+# GitHub Actions needs it in the checkout to build. See docs/R2_HOSTING.md.)
 **/GoogleService-Info.plist
 android/key.properties
 *.keystore

@@ -9,6 +9,7 @@ import '../../shared/widgets/app_widgets.dart';
 import '../../shared/widgets/skeletons.dart';
 import '../ai_tutor/ai_tutor_screen.dart';
 import '../cgpa/cgpa_calculator_screen.dart';
+import '../insights/weak_topics_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../subjects/subjects_screen.dart';
 
@@ -184,6 +185,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: AppTheme.brand2,
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const AiTutorScreen()),
+              ),
+            ),
+            _ActionTile(
+              icon: Icons.insights_rounded,
+              title: 'My Insights',
+              subtitle: 'Weak topics from your past exams & quizzes',
+              color: AppTheme.warning,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const WeakTopicsScreen()),
               ),
             ),
           ],

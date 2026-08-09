@@ -1,9 +1,9 @@
 name: learnhub
-description: "LearnHub — your ultimate learning companion (Flutter app)."
+description: "LearnHub Academy — empowering learners, growing minds (Flutter app)."
 publish_to: "none"
 
 # Bump the build number (the +N) on every Play Store upload.
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   # Flutter 3.22+ / Dart 3.4+ (uses WidgetState API + recent Material 3).
@@ -48,8 +48,19 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.1
 
 flutter:
   uses-material-design: true
   assets:
     - assets/images/
+
+# Regenerate with: flutter test test/_generate_app_icon.dart && dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_background: "assets/icon/background.png"
+  adaptive_icon_foreground: "assets/icon/foreground.png"
+  min_sdk_android: 24
+  remove_alpha_ios: true

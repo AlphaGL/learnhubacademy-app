@@ -67,7 +67,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   .fadeIn(),
               const SizedBox(height: 24),
               const Text(
-                'LearnHub',
+                'LearnHub Academy',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 30,
@@ -77,7 +77,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.3, end: 0),
               const SizedBox(height: 6),
               Text(
-                'Your ultimate learning companion',
+                'Empowering learners, growing minds',
                 style: TextStyle(color: Colors.white.withOpacity(0.85)),
               ).animate().fadeIn(delay: 500.ms),
             ],

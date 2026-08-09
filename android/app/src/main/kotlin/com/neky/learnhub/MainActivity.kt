@@ -1,4 +1,4 @@
-package com.example.learnhub
+package com.neky.learnhub
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -132,7 +132,8 @@ class GradientButton extends StatelessWidget {
   }
 }
 
-/// The brand logo mark (gradient rounded square with a graduation cap).
+/// The brand logo mark: navy rounded square with the LearnHub Academy
+/// mortarboard + gold tassel (see learnhub_academy_logo.png).
 class AppLogo extends StatelessWidget {
   const AppLogo({super.key, this.size = 64});
   final double size;
@@ -154,9 +155,59 @@ class AppLogo extends StatelessWidget {
           ),
         ],
       ),
-      child: Icon(Icons.school_rounded, color: Colors.white, size: size * 0.52),
+      child: CustomPaint(
+        size: Size(size * 0.6, size * 0.6),
+        painter: const _GraduationCapPainter(),
+      ),
     );
   }
+}
+
+/// White mortarboard with a gold tassel — no font dependency, matches the
+/// mark used for the app icon (see test/_generate_app_icon.dart).
+class _GraduationCapPainter extends CustomPainter {
+  const _GraduationCapPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final white = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    final gold = Paint()
+      ..color = AppTheme.gold
+      ..style = PaintingStyle.fill;
+
+    final capTop = Path()
+      ..moveTo(w * 0.50, h * 0.10)
+      ..lineTo(w * 0.94, h * 0.36)
+      ..lineTo(w * 0.50, h * 0.60)
+      ..lineTo(w * 0.06, h * 0.36)
+      ..close();
+    canvas.drawPath(capTop, white);
+
+    final base = RRect.fromRectAndRadius(
+      Rect.fromLTWH(w * 0.27, h * 0.44, w * 0.34, h * 0.18),
+      Radius.circular(w * 0.03),
+    );
+    canvas.drawRRect(base, white);
+
+    final cord = Paint()
+      ..color = AppTheme.gold
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = w * 0.045
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(w * 0.78, h * 0.365),
+      Offset(w * 0.78, h * 0.62),
+      cord,
+    );
+    canvas.drawCircle(Offset(w * 0.78, h * 0.68), w * 0.055, gold);
+  }
+
+  @override
+  bool shouldRepaint(covariant _GraduationCapPainter oldDelegate) => false;
 }
 
 /// Section header with optional trailing action.

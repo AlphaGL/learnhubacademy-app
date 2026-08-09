@@ -43,7 +43,7 @@ class AppConfig {
   static bool get isConfigured =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
 
-  static const String appName = 'LearnHub';
+  static const String appName = 'LearnHub Academy';
 
   /// Django creates tables as `<app_label>_<model>`. These are the ones the
   /// app reads directly through Supabase/PostgREST.

@@ -10,10 +10,11 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   AppTheme._();
 
-  // --- Brand palette ---
-  static const Color brand = Color(0xFF5B4BFF); // refined indigo-violet
-  static const Color brand2 = Color(0xFF8B5CF6); // violet
-  static const Color accent = Color(0xFF06B6D4); // cyan
+  // --- Brand palette (LearnHub Academy: navy / gold / teal) ---
+  static const Color brand = Color(0xFF163A5C); // academy navy
+  static const Color brand2 = Color(0xFF1F4E7A); // lighter navy (gradient depth)
+  static const Color accent = Color(0xFF2AA398); // teal
+  static const Color gold = Color(0xFFDBA525); // tassel gold — sparing use
   static const Color success = Color(0xFF16C784);
   static const Color warning = Color(0xFFF59E0B);
   static const Color danger = Color(0xFFF43F5E);

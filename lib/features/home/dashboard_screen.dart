@@ -7,6 +7,7 @@ import '../../core/services/supabase_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
 import '../../shared/widgets/skeletons.dart';
+import '../ai_tutor/ai_tutor_screen.dart';
 import '../cgpa/cgpa_calculator_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../subjects/subjects_screen.dart';
@@ -177,12 +178,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             _ActionTile(
-              icon: Icons.auto_awesome_rounded,
-              title: 'Explain with AI',
-              subtitle: 'Open any topic and tap "Explain with AI"',
+              icon: Icons.smart_toy_rounded,
+              title: 'AI Tutor',
+              subtitle: 'Ask questions, get step-by-step explanations',
               color: AppTheme.brand2,
               onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SubjectsScreen()),
+                MaterialPageRoute(builder: (_) => const AiTutorScreen()),
               ),
             ),
           ],

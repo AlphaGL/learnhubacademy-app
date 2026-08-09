@@ -12,7 +12,16 @@
           "package_name": "com.neky.learnhub"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "556903053624-34qsuee09rp4qja4evsmbjgilhabtcn5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.neky.learnhub",
+            "certificate_hash": "54c2d4b5dde28cd0b451c87665f903d86a5faac9"
+          }
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAaSS4KrvPsqwX8swlF4TBf9RVJZAlBu0s"

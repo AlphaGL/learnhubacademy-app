@@ -48,8 +48,45 @@ class AuthService extends ChangeNotifier {
     );
   }
 
-  Future<void> sendPasswordReset(String email) {
-    return SupabaseService.client.auth.resetPasswordForEmail(email);
+  /// Sign in with phone + password, matching the website's login flow.
+  /// Supabase Auth itself only signs in by email (or phone via OTP, not
+  /// password), so this first resolves the phone number to its account's
+  /// email via the get_email_for_phone RPC, then signs in normally.
+  Future<AuthResponse> signInWithPhone({
+    required String phone,
+    required String password,
+  }) async {
+    final email = await SupabaseService.client
+        .rpc('get_email_for_phone', params: {'p_phone': phone}) as String?;
+    if (email == null || email.isEmpty) {
+      throw const AuthException('No account found with that phone number.');
+    }
+    return SupabaseService.client.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  /// Resets a forgotten password by confirming email + phone together —
+  /// mirrors the website's two-step identity verification (no email link).
+  /// Throws if the email/phone pair doesn't match an existing account.
+  Future<void> resetPasswordWithIdentity({
+    required String email,
+    required String phone,
+    required String newPassword,
+  }) async {
+    final ok = await SupabaseService.client.rpc(
+      'reset_password_with_identity',
+      params: {
+        'p_email': email,
+        'p_phone': phone,
+        'p_new_password': newPassword,
+      },
+    ) as bool;
+    if (!ok) {
+      throw const AuthException(
+          "We couldn't verify that email and phone number together.");
+    }
   }
 
   /// Native Google sign-in → Supabase session.

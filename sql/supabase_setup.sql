@@ -186,6 +186,80 @@ grant select on table public.app_release to anon, authenticated;
 -- No insert/update/delete grants for anon/authenticated — only the
 -- service_role key (used server-side by CI) can publish a release.
 
+-- ---------------------------------------------------------------------------
+-- 7. Phone-number sign-in + identity-verified password reset.
+--    Mirrors the Django site's own auth UX: log in with phone + password,
+--    register with email, and reset a forgotten password by confirming
+--    email + phone together (no email link) — see learning/forms.py
+--    StudentLoginForm / IdentityVerificationForm on the website.
+--
+--    Supabase Auth's client SDK only signs in by email or phone-OTP, not
+--    "phone + password", so the app looks up the matching email for a given
+--    phone number here, then signs in with that email normally. Both
+--    functions are SECURITY DEFINER because anon/authenticated has no
+--    direct access to auth.users; they only return/act on exactly the row
+--    matched by the caller-supplied phone/email, nothing else.
+-- ---------------------------------------------------------------------------
+create or replace function public.get_email_for_phone(p_phone text)
+returns text
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_email text;
+begin
+  select u.email into v_email
+  from public.app_profiles p
+  join auth.users u on u.id = p.user_id
+  where p.phone_number = p_phone
+  order by p.created_at asc
+  limit 1;
+
+  return v_email;
+end;
+$$;
+
+revoke all on function public.get_email_for_phone(text) from public;
+grant execute on function public.get_email_for_phone(text) to anon, authenticated;
+
+create or replace function public.reset_password_with_identity(
+  p_email text,
+  p_phone text,
+  p_new_password text
+)
+returns boolean
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_user_id uuid;
+begin
+  if length(p_new_password) < 8 then
+    raise exception 'Password must be at least 8 characters long.';
+  end if;
+
+  select u.id into v_user_id
+  from auth.users u
+  join public.app_profiles p on p.user_id = u.id
+  where lower(u.email) = lower(p_email)
+    and p.phone_number = p_phone;
+
+  if v_user_id is null then
+    return false;
+  end if;
+
+  update auth.users
+  set encrypted_password = crypt(p_new_password, gen_salt('bf')),
+      updated_at = now()
+  where id = v_user_id;
+
+  return true;
+end;
+$$;
+
+revoke all on function public.reset_password_with_identity(text, text, text) from public;
+grant execute on function public.reset_password_with_identity(text, text, text) to anon, authenticated;
+
 -- ============================================================================
 -- OPTIONAL: gate full material content behind a subscription
 -- ----------------------------------------------------------------------------

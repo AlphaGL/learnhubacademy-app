@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/widgets/app_widgets.dart';
+import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,14 +17,14 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _email = TextEditingController();
+  final _phone = TextEditingController();
   final _password = TextEditingController();
   bool _loading = false;
   bool _obscure = true;
 
   @override
   void dispose() {
-    _email.dispose();
+    _phone.dispose();
     _password.dispose();
     super.dispose();
   }
@@ -44,17 +45,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String _friendly(Object e) {
     final s = e.toString();
-    if (s.contains('Invalid login')) return 'Wrong email or password.';
+    if (s.contains('Invalid login')) return 'Wrong phone number or password.';
     return s.replaceFirst('Exception: ', '');
   }
 
-  Future<void> _emailLogin() async {
+  Future<void> _phoneLogin() async {
     if (!_formKey.currentState!.validate()) return;
     final auth = context.read<AuthService>();
     await _run(() async {
-      await auth.signInWithEmail(
-          email: _email.text.trim(), password: _password.text);
-      await AnalyticsService.instance.logLogin('email');
+      await auth.signInWithPhone(
+          phone: _phone.text.trim(), password: _password.text);
+      await AnalyticsService.instance.logLogin('phone');
     });
   }
 
@@ -63,22 +64,6 @@ class _LoginScreenState extends State<LoginScreen> {
     await _run(() async {
       await auth.signInWithGoogle();
       await AnalyticsService.instance.logLogin('google');
-    });
-  }
-
-  Future<void> _forgotPassword() async {
-    final email = _email.text.trim();
-    if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Enter your email first.')));
-      return;
-    }
-    await _run(() async {
-      await context.read<AuthService>().sendPasswordReset(email);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Password reset link sent to your email.')));
-      }
     });
   }
 
@@ -114,14 +99,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(color: scheme.onSurfaceVariant)),
                     const SizedBox(height: 32),
                     TextFormField(
-                      controller: _email,
-                      keyboardType: TextInputType.emailAddress,
+                      controller: _phone,
+                      keyboardType: TextInputType.phone,
                       decoration: const InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: Icon(Icons.mail_outline_rounded),
+                        labelText: 'Phone number',
+                        prefixIcon: Icon(Icons.phone_outlined),
                       ),
-                      validator: (v) => (v == null || !v.contains('@'))
-                          ? 'Enter a valid email'
+                      validator: (v) => (v == null || v.trim().length < 7)
+                          ? 'Enter a valid phone number'
                           : null,
                     ),
                     const SizedBox(height: 14),
@@ -145,7 +130,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: _loading ? null : _forgotPassword,
+                        onPressed: _loading
+                            ? null
+                            : () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          const ForgotPasswordScreen()),
+                                ),
                         child: const Text('Forgot password?'),
                       ),
                     ),
@@ -153,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     GradientButton(
                       label: 'Sign in',
                       loading: _loading,
-                      onPressed: _loading ? null : _emailLogin,
+                      onPressed: _loading ? null : _phoneLogin,
                     ),
                     const SizedBox(height: 20),
                     Row(children: [

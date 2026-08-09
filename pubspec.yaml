@@ -1,0 +1,55 @@
+name: learnhub
+description: "LearnHub — your ultimate learning companion (Flutter app)."
+publish_to: "none"
+
+# Bump the build number (the +N) on every Play Store upload.
+version: 1.0.0+1
+
+environment:
+  # Flutter 3.22+ / Dart 3.4+ (uses WidgetState API + recent Material 3).
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # --- Backend: Supabase (data + auth, independent of the Django site) ---
+  supabase_flutter: ^2.5.6
+
+  # --- Firebase: notifications, analytics, crash reporting ---
+  firebase_core: ^3.3.0
+  firebase_messaging: ^15.0.4
+  firebase_analytics: ^11.2.1
+  firebase_crashlytics: ^4.0.4
+  flutter_local_notifications: ^17.2.2
+
+  # --- Auth helpers ---
+  google_sign_in: ^6.2.1
+
+  # --- Navigation & state ---
+  go_router: ^14.2.0
+  provider: ^6.1.2
+
+  # --- Premium UI ---
+  google_fonts: ^6.2.1
+  flutter_animate: ^4.5.0
+  shimmer: ^3.0.0
+
+  # --- Local storage / utilities ---
+  shared_preferences: ^2.3.2
+  intl: ^0.19.0
+  url_launcher: ^6.3.0
+  cached_network_image: ^3.4.0
+  cupertino_icons: ^1.0.8
+  package_info_plus: ^8.0.2
+  background_downloader: ^9.2.0
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/

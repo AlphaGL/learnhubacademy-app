@@ -45,6 +45,12 @@ class AppConfig {
 
   static const String appName = 'LearnHub Academy';
 
+  /// The website — shares the same Supabase database but has its own,
+  /// separate Django-based accounts. Used only for the account-bridging
+  /// endpoint (see AuthService.signInWithPhone) that provisions a matching
+  /// Supabase account from a verified website login.
+  static const String siteUrl = 'https://learnhubacademy.org';
+
   /// Django creates tables as `<app_label>_<model>`. These are the ones the
   /// app reads directly through Supabase/PostgREST.
   static const String tblSubject = 'learning_subject';

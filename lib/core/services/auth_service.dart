@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/app_config.dart';
@@ -52,12 +54,24 @@ class AuthService extends ChangeNotifier {
   /// Supabase Auth itself only signs in by email (or phone via OTP, not
   /// password), so this first resolves the phone number to its account's
   /// email via the get_email_for_phone RPC, then signs in normally.
+  ///
+  /// If no Supabase account exists for that phone yet, it may still be a
+  /// valid website (Django) account — in that case, ask the website to
+  /// verify it and provision a matching Supabase account, then retry once.
+  /// This is what makes one phone+password work on both the app and site.
   Future<AuthResponse> signInWithPhone({
     required String phone,
     required String password,
   }) async {
-    final email = await SupabaseService.client
-        .rpc('get_email_for_phone', params: {'p_phone': phone}) as String?;
+    var email = await _emailForPhone(phone);
+
+    if (email == null) {
+      final bridged = await _bridgeFromWebsite(phone, password);
+      if (bridged) {
+        email = await _emailForPhone(phone);
+      }
+    }
+
     if (email == null || email.isEmpty) {
       throw const AuthException('No account found with that phone number.');
     }
@@ -65,6 +79,33 @@ class AuthService extends ChangeNotifier {
       email: email,
       password: password,
     );
+  }
+
+  Future<String?> _emailForPhone(String phone) async {
+    return await SupabaseService.client
+        .rpc('get_email_for_phone', params: {'p_phone': phone}) as String?;
+  }
+
+  /// Asks the website to verify phone+password against its own (Django)
+  /// accounts and, if valid, create a matching Supabase account. Returns
+  /// false (never throws) on any failure — the caller falls through to the
+  /// normal "no account found" error either way.
+  Future<bool> _bridgeFromWebsite(String phone, String password) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('${AppConfig.siteUrl}/api/bridge-login/'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'phone_number': phone, 'password': password}),
+          )
+          .timeout(const Duration(seconds: 15));
+      if (response.statusCode != 200) return false;
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      return body['bridged'] == true;
+    } catch (e) {
+      debugPrint('Website account bridge skipped/failed: $e');
+      return false;
+    }
   }
 
   /// Resets a forgotten password by confirming email + phone together —

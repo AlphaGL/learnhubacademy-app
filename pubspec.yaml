@@ -3,7 +3,7 @@ description: "LearnHub Academy — empowering learners, growing minds (Flutter a
 publish_to: "none"
 
 # Bump the build number (the +N) on every Play Store upload.
-version: 1.0.2+3
+version: 1.0.3+4
 
 environment:
   # Flutter 3.22+ / Dart 3.4+ (uses WidgetState API + recent Material 3).
@@ -43,6 +43,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   package_info_plus: ^8.0.2
   background_downloader: ^9.2.0
+  http: ^1.2.0
 
 dev_dependencies:
   flutter_lints: ^4.0.0

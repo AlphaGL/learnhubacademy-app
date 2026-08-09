@@ -5,6 +5,7 @@ import '../../core/services/supabase_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
 import '../../shared/widgets/skeletons.dart';
+import '../exams/exam_years_screen.dart';
 import '../subjects/models/subject.dart';
 import 'material_detail_screen.dart';
 import 'models/material_model.dart';
@@ -56,6 +57,16 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.subject.name),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.quiz_rounded),
+            tooltip: 'Past Questions',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (_) => ExamYearsScreen(subject: widget.subject)),
+            ),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(26),
           child: Align(

@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/app_config.dart';
+import 'exam_api_service.dart';
 import 'supabase_service.dart';
 
 /// All authentication goes through Supabase Auth so that database Row-Level
@@ -159,6 +160,7 @@ class AuthService extends ChangeNotifier {
     try {
       await GoogleSignIn().signOut();
     } catch (_) {/* not signed in via google — ignore */}
+    ExamApiService.instance.clearToken();
     await SupabaseService.client.auth.signOut();
   }
 

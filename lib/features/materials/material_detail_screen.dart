@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/services/exam_api_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
+import '../exams/models/exam_models.dart';
+import '../exams/start_exam_helper.dart';
 import 'models/material_model.dart';
 
 class MaterialDetailScreen extends StatelessWidget {
@@ -67,6 +70,19 @@ class MaterialDetailScreen extends StatelessWidget {
                 label: 'Explain with AI',
                 color: AppTheme.accent,
                 onTap: () => _explainWithAi(context),
+              ),
+              _ResourceButton(
+                icon: Icons.quiz_rounded,
+                label: 'Take Quiz',
+                color: AppTheme.success,
+                onTap: () => startOrResumeExam(
+                  context,
+                  kind: ExamKind.material,
+                  contentId: material.id,
+                  title: material.title,
+                  start: (mode) => ExamApiService.instance
+                      .startMaterialExam(materialId: material.id, mode: mode),
+                ),
               ),
             ],
           ),

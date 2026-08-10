@@ -9,6 +9,7 @@ import '../../core/services/supabase_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_controller.dart';
 import '../../shared/widgets/app_widgets.dart';
+import '../ambassador/ambassador_home_screen.dart';
 import '../exams/exam_history_screen.dart';
 import '../materials/offline_materials_screen.dart';
 import '../notifications/notifications_screen.dart';
@@ -117,6 +118,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   value: theme.isDark,
                   onChanged: (v) => theme.toggle(v),
                 ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          const SectionHeader(title: 'Earn'),
+          PremiumCard(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Column(
+              children: [
+                _tile(context, Icons.people_alt_outlined, 'Ambassador Programme',
+                    () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => const AmbassadorHomeScreen()))),
               ],
             ),
           ),

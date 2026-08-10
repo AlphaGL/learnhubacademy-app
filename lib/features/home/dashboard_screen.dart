@@ -17,6 +17,7 @@ import '../notifications/notifications_screen.dart';
 import '../question_of_the_day/question_of_the_day_screen.dart';
 import '../search/global_search_screen.dart';
 import '../streaks/streaks_screen.dart';
+import '../studygroups/studygroups_list_screen.dart';
 import '../subjects/subjects_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -176,6 +177,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: AppTheme.brand,
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const SubjectsScreen()),
+              ),
+            ),
+            _ActionTile(
+              icon: Icons.groups_rounded,
+              title: 'Study Groups',
+              subtitle: 'Join course groups, ask for help, discuss together',
+              color: AppTheme.brand2,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const StudyGroupsListScreen()),
               ),
             ),
             const SizedBox(height: 16),

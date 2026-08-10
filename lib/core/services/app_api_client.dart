@@ -32,6 +32,13 @@ class AppApiClient {
   bool? _isSubscribed;
   bool? get cachedIsSubscribed => _isSubscribed;
 
+  /// The Django auth_user.id for the signed-in app user — NOT the same as
+  /// SupabaseService.currentUser.id (a Supabase Auth UUID); features that
+  /// display Django-sourced author/user ids (e.g. Study Groups messages)
+  /// need this one to know which items are "mine".
+  int? _djangoUserId;
+  int? get cachedDjangoUserId => _djangoUserId;
+
   Future<String?> _fetchToken() async {
     final session = SupabaseService.client.auth.currentSession;
     if (session == null) return null;
@@ -44,6 +51,7 @@ class AppApiClient {
     if (resp.statusCode != 200) return null;
     final body = jsonDecode(resp.body) as Map<String, dynamic>;
     _isSubscribed = body['is_subscribed'] as bool?;
+    _djangoUserId = body['user_id'] as int?;
     return body['token'] as String?;
   }
 
@@ -117,6 +125,7 @@ class AppApiClient {
   void clearToken() {
     _token = null;
     _isSubscribed = null;
+    _djangoUserId = null;
     debugPrint('App API token cleared');
   }
 }

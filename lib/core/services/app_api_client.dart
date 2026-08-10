@@ -23,6 +23,15 @@ class AppApiClient {
 
   String? _token;
 
+  /// Subscription status as of the last token fetch — Django is the single
+  /// source of truth (same Subscription model the website's Paystack
+  /// webhook updates), so this is what gates paid content in the app too,
+  /// not Supabase's app_profiles.is_subscribed (which nothing ever writes
+  /// to from a real payment, and which a signed-in user could otherwise
+  /// self-edit via the client SDK).
+  bool? _isSubscribed;
+  bool? get cachedIsSubscribed => _isSubscribed;
+
   Future<String?> _fetchToken() async {
     final session = SupabaseService.client.auth.currentSession;
     if (session == null) return null;
@@ -34,7 +43,16 @@ class AppApiClient {
 
     if (resp.statusCode != 200) return null;
     final body = jsonDecode(resp.body) as Map<String, dynamic>;
+    _isSubscribed = body['is_subscribed'] as bool?;
     return body['token'] as String?;
+  }
+
+  /// Re-fetches the token (and with it, subscription status) from Django.
+  /// Cheap enough to call whenever a screen needs an up-to-date answer —
+  /// e.g. right after returning from the website's payment flow.
+  Future<bool> refreshSubscriptionStatus() async {
+    _token = await _fetchToken();
+    return _isSubscribed ?? false;
   }
 
   Future<http.Response> request(
@@ -98,6 +116,7 @@ class AppApiClient {
   /// never accidentally reuses a stale token.
   void clearToken() {
     _token = null;
+    _isSubscribed = null;
     debugPrint('App API token cleared');
   }
 }

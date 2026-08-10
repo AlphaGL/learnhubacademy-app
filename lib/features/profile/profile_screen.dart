@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/config/app_config.dart';
+import '../../core/services/app_api_client.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/theme/app_theme.dart';
@@ -11,10 +13,40 @@ import '../exams/exam_history_screen.dart';
 import '../materials/offline_materials_screen.dart';
 import '../notifications/notifications_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
   static const _privacyUrl = 'https://best-learnhub.vercel.app/privacy';
+  static const _pricingUrl = '${AppConfig.siteUrl}/pricing/';
+
+  bool? _subscribed;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSubscription();
+  }
+
+  Future<void> _loadSubscription() async {
+    try {
+      final subscribed = await AppApiClient.instance.refreshSubscriptionStatus();
+      if (mounted) setState(() => _subscribed = subscribed);
+    } catch (_) {
+      if (mounted) setState(() => _subscribed = false);
+    }
+  }
+
+  Future<void> _openPricing() async {
+    await launchUrl(Uri.parse(_pricingUrl), mode: LaunchMode.externalApplication);
+    // The student may have just paid on the website — refresh so the app
+    // reflects it without needing a full app restart.
+    _loadSubscription();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,8 +138,12 @@ class ProfileScreen extends StatelessWidget {
                     () => Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => const OfflineMaterialsScreen()))),
                 _divider(scheme),
-                _tile(context, Icons.workspace_premium_outlined, 'Subscription',
-                    () => _comingSoon(context)),
+                _tile(
+                  context,
+                  Icons.workspace_premium_outlined,
+                  _subscribed == true ? 'Subscription — Active' : 'Subscribe',
+                  _openPricing,
+                ),
                 _divider(scheme),
                 _tile(context, Icons.privacy_tip_outlined, 'Privacy policy',
                     () => launchUrl(Uri.parse(_privacyUrl),
@@ -157,12 +193,6 @@ class ProfileScreen extends StatelessWidget {
       trailing: Icon(Icons.chevron_right_rounded,
           color: Theme.of(context).colorScheme.onSurfaceVariant),
       onTap: onTap,
-    );
-  }
-
-  void _comingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('In-app subscription is coming soon.')),
     );
   }
 }

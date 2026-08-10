@@ -1,12 +1,17 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/services/exam_api_service.dart';
 import '../../core/services/offline_cache_service.dart';
+import '../../core/services/supabase_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
 import '../exams/models/exam_models.dart';
 import '../exams/start_exam_helper.dart';
+import 'models/material_image.dart';
 import 'models/material_model.dart';
 
 class MaterialDetailScreen extends StatefulWidget {
@@ -25,16 +30,51 @@ class MaterialDetailScreen extends StatefulWidget {
 class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
   MaterialModel get material => widget.material;
   bool? _cached; // null while loading
+  YoutubePlayerController? _ytController;
+  List<MaterialImage> _images = [];
 
   @override
   void initState() {
     super.initState();
-    if (!widget.isOffline) _loadCachedState();
+    if (!widget.isOffline) {
+      _loadCachedState();
+      _loadImages();
+    }
+    if (material.hasVideo) {
+      final videoId = YoutubePlayer.convertUrlToId(material.videoUrl!);
+      if (videoId != null) {
+        _ytController = YoutubePlayerController(
+          initialVideoId: videoId,
+          flags: const YoutubePlayerFlags(autoPlay: false, mute: false),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _ytController?.dispose();
+    super.dispose();
   }
 
   Future<void> _loadCachedState() async {
     final cached = await OfflineCacheService.instance.isCached(material.id);
     if (mounted) setState(() => _cached = cached);
+  }
+
+  Future<void> _loadImages() async {
+    try {
+      final rows = await SupabaseService.client
+          .from(AppConfig.tblMaterialImage)
+          .select('id, material_id, image_url, caption, order')
+          .eq('material_id', material.id)
+          .order('order');
+      final images =
+          (rows as List).map((e) => MaterialImage.fromMap(e as Map<String, dynamic>)).toList();
+      if (mounted) setState(() => _images = images);
+    } catch (_) {
+      // Slide images are a bonus, not essential — fail quietly.
+    }
   }
 
   Future<void> _toggleOffline() async {
@@ -122,11 +162,19 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
                 ],
               ),
             ),
+          if (_ytController != null) ...[
+            const SectionHeader(title: 'Video'),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AppTheme.rMd),
+              child: YoutubePlayer(controller: _ytController!),
+            ),
+            const SizedBox(height: 20),
+          ],
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              if (material.hasVideo)
+              if (material.hasVideo && _ytController == null)
                 _ResourceButton(
                   icon: Icons.play_circle,
                   label: 'Watch video',
@@ -176,7 +224,92 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
               title: 'No written notes',
               message: 'Use the buttons above to open the PDF, video, or AI help.',
             ),
+          if (_images.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            const SectionHeader(title: 'Slides'),
+            SizedBox(
+              height: 120,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _images.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (context, i) {
+                  final image = _images[i];
+                  return GestureDetector(
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => _SlideGalleryScreen(images: _images, initialIndex: i),
+                    )),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(AppTheme.rSm),
+                      child: CachedNetworkImage(
+                        imageUrl: image.imageUrl,
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                        placeholder: (context, _) => Container(
+                          width: 120,
+                          height: 120,
+                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        ),
+                        errorWidget: (context, _, __) => Container(
+                          width: 120,
+                          height: 120,
+                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          child: const Icon(Icons.broken_image_outlined),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+class _SlideGalleryScreen extends StatelessWidget {
+  const _SlideGalleryScreen({required this.images, required this.initialIndex});
+  final List<MaterialImage> images;
+  final int initialIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: Text('${initialIndex + 1} / ${images.length}'),
+      ),
+      body: PageView.builder(
+        controller: PageController(initialPage: initialIndex),
+        itemCount: images.length,
+        itemBuilder: (context, i) {
+          final image = images[i];
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: InteractiveViewer(
+                  child: CachedNetworkImage(
+                    imageUrl: image.imageUrl,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+              if (image.caption.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(image.caption,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white70)),
+                ),
+            ],
+          );
+        },
       ),
     );
   }

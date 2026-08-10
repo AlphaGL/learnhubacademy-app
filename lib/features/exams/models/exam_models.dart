@@ -164,7 +164,11 @@ class ExamResultQuestion {
   final int questionId;
   final int number;
   final String text;
-  final int selectedOptionId;
+
+  /// Null when the student never answered this question (left the exam
+  /// early, or time ran out) — still counted as wrong, just with nothing
+  /// to highlight as "your answer".
+  final int? selectedOptionId;
   final bool isCorrect;
   final List<ExamOption> options;
   final ExplanationData? explanation;
@@ -173,7 +177,7 @@ class ExamResultQuestion {
         questionId: j['question_id'] as int,
         number: j['question_number'] as int,
         text: (j['question_text'] ?? '') as String,
-        selectedOptionId: j['selected_option_id'] as int,
+        selectedOptionId: j['selected_option_id'] as int?,
         isCorrect: (j['is_correct'] ?? false) as bool,
         options: (j['options'] as List)
             .map((o) => ExamOption.fromJson(o as Map<String, dynamic>))

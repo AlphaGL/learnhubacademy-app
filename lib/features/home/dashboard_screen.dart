@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/services/app_api_client.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
@@ -35,7 +36,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<_DashboardData> _load() async {
     final client = SupabaseService.client;
-    final user = SupabaseService.currentUser;
 
     final subjectsCount =
         await client.from(AppConfig.tblSubject).count(CountOption.exact);
@@ -46,14 +46,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           await client.from(AppConfig.tblMaterial).count(CountOption.exact);
     } catch (_) {}
 
+    // Django's own Subscription model is the single source of truth (same
+    // one the website's Paystack webhook updates) — not Supabase's
+    // app_profiles.is_subscribed, which nothing writes on a real payment.
     bool subscribed = false;
     try {
-      final sub = await client
-          .from(AppConfig.tblAppProfile)
-          .select('is_subscribed')
-          .eq('user_id', user!.id)
-          .maybeSingle();
-      subscribed = (sub?['is_subscribed'] as bool?) ?? false;
+      subscribed = await AppApiClient.instance.refreshSubscriptionStatus();
     } catch (_) {}
 
     return _DashboardData(

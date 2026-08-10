@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/services/app_api_client.dart';
 import '../../core/services/offline_cache_service.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/theme/app_theme.dart';
@@ -24,10 +26,27 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
   Set<int> _cachedIds = {};
   bool _offlineFallback = false;
 
+  /// null while checking; Django's Subscription model is the source of
+  /// truth (see AppApiClient.refreshSubscriptionStatus) — mirrors the
+  /// website's @subscription_required on materials_list/material_detail,
+  /// which the app never enforced before.
+  bool? _subscribed;
+
   @override
   void initState() {
     super.initState();
     _future = _load();
+    _checkSubscription();
+  }
+
+  Future<void> _checkSubscription() async {
+    try {
+      final cached = AppApiClient.instance.cachedIsSubscribed;
+      final subscribed = cached ?? await AppApiClient.instance.refreshSubscriptionStatus();
+      if (mounted) setState(() => _subscribed = subscribed);
+    } catch (_) {
+      if (mounted) setState(() => _subscribed = false);
+    }
   }
 
   Future<List<MaterialModel>> _load() async {
@@ -103,7 +122,14 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
           ),
         ),
       ),
-      body: FutureBuilder<List<MaterialModel>>(
+      body: _subscribed == null
+          ? const SkeletonList()
+          : (_subscribed == false ? _SubscriptionPaywall(subject: widget.subject) : _buildList()),
+    );
+  }
+
+  Widget _buildList() {
+    return FutureBuilder<List<MaterialModel>>(
         future: _future,
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
@@ -220,6 +246,54 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
             ),
           );
         },
+      );
+  }
+}
+
+class _SubscriptionPaywall extends StatelessWidget {
+  const _SubscriptionPaywall({required this.subject});
+  final Subject subject;
+
+  Future<void> _openPricing() async {
+    await launchUrl(Uri.parse('${AppConfig.siteUrl}/pricing/'),
+        mode: LaunchMode.externalApplication);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            height: 72,
+            width: 72,
+            decoration: BoxDecoration(
+              gradient: AppTheme.brandGradient,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 34),
+          ),
+          const SizedBox(height: 20),
+          Text('Subscribe to unlock ${subject.name}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+          const SizedBox(height: 8),
+          Text(
+            'Materials, notes and past questions for this course require an active '
+            'subscription or free trial.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: scheme.onSurfaceVariant, height: 1.4),
+          ),
+          const SizedBox(height: 24),
+          GradientButton(
+            label: 'Subscribe now',
+            icon: Icons.open_in_new_rounded,
+            onPressed: _openPricing,
+          ),
+        ],
       ),
     );
   }

@@ -157,8 +157,12 @@ class _QuestionResultCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  question.isCorrect ? Icons.check_circle_rounded : Icons.cancel_rounded,
-                  color: question.isCorrect ? AppTheme.success : AppTheme.danger,
+                  question.selectedOptionId == null
+                      ? Icons.remove_circle_outline_rounded
+                      : (question.isCorrect ? Icons.check_circle_rounded : Icons.cancel_rounded),
+                  color: question.selectedOptionId == null
+                      ? Theme.of(context).colorScheme.onSurfaceVariant
+                      : (question.isCorrect ? AppTheme.success : AppTheme.danger),
                   size: 20,
                 ),
                 const SizedBox(width: 10),
@@ -168,6 +172,17 @@ class _QuestionResultCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (question.selectedOptionId == null) ...[
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.only(left: 30),
+                child: Text('Not answered',
+                    style: TextStyle(
+                        color: scheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic,
+                        fontSize: 12.5)),
+              ),
+            ],
             const SizedBox(height: 10),
             ...question.options.map((option) {
               final isSelected = option.id == question.selectedOptionId;

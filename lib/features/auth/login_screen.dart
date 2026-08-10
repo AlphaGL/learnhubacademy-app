@@ -59,13 +59,14 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  Future<void> _googleLogin() async {
-    final auth = context.read<AuthService>();
-    await _run(() async {
-      await auth.signInWithGoogle();
-      await AnalyticsService.instance.logLogin('google');
-    });
-  }
+  // Google Sign-In disabled — persistent OAuth config issues, revisit later.
+  // Future<void> _googleLogin() async {
+  //   final auth = context.read<AuthService>();
+  //   await _run(() async {
+  //     await auth.signInWithGoogle();
+  //     await AnalyticsService.instance.logLogin('google');
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -146,26 +147,29 @@ class _LoginScreenState extends State<LoginScreen> {
                       loading: _loading,
                       onPressed: _loading ? null : _phoneLogin,
                     ),
-                    const SizedBox(height: 20),
-                    Row(children: [
-                      Expanded(
-                          child: Divider(
-                              color: scheme.outlineVariant.withOpacity(0.6))),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('or continue with',
-                            style: TextStyle(color: scheme.onSurfaceVariant)),
-                      ),
-                      Expanded(
-                          child: Divider(
-                              color: scheme.outlineVariant.withOpacity(0.6))),
-                    ]),
-                    const SizedBox(height: 20),
-                    OutlinedButton.icon(
-                      onPressed: _loading ? null : _googleLogin,
-                      icon: const Icon(Icons.g_mobiledata_rounded, size: 30),
-                      label: const Text('Google'),
-                    ),
+                    // Google Sign-In disabled — persistent OAuth config
+                    // issues, revisit later. See _googleLogin in this file
+                    // and AuthService.signInWithGoogle.
+                    //
+                    // Row(children: [
+                    //   Expanded(
+                    //       child: Divider(
+                    //           color: scheme.outlineVariant.withOpacity(0.6))),
+                    //   Padding(
+                    //     padding: const EdgeInsets.symmetric(horizontal: 12),
+                    //     child: Text('or continue with',
+                    //         style: TextStyle(color: scheme.onSurfaceVariant)),
+                    //   ),
+                    //   Expanded(
+                    //       child: Divider(
+                    //           color: scheme.outlineVariant.withOpacity(0.6))),
+                    // ]),
+                    // const SizedBox(height: 20),
+                    // OutlinedButton.icon(
+                    //   onPressed: _loading ? null : _googleLogin,
+                    //   icon: const Icon(Icons.g_mobiledata_rounded, size: 30),
+                    //   label: const Text('Google'),
+                    // ),
                     const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

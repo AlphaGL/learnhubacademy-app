@@ -15,6 +15,7 @@ import '../flashcards/flashcards_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../question_of_the_day/question_of_the_day_screen.dart';
+import '../search/global_search_screen.dart';
 import '../streaks/streaks_screen.dart';
 import '../subjects/subjects_screen.dart';
 
@@ -111,6 +112,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                   IconButton.filledTonal(
+                    icon: const Icon(Icons.search_rounded),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const GlobalSearchScreen()),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton.filledTonal(
                     icon: const Icon(Icons.notifications_none_rounded),
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute(
@@ -170,69 +178,72 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 MaterialPageRoute(builder: (_) => const SubjectsScreen()),
               ),
             ),
-            _ActionTile(
-              icon: Icons.calculate_rounded,
-              title: 'CGPA Calculator',
-              subtitle: 'Track GPA & CGPA across semesters',
-              color: AppTheme.success,
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                    builder: (_) => const CgpaCalculatorScreen()),
-              ),
-            ),
-            _ActionTile(
-              icon: Icons.smart_toy_rounded,
-              title: 'AI Tutor',
-              subtitle: 'Ask questions, get step-by-step explanations',
-              color: AppTheme.brand2,
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const AiTutorScreen()),
-              ),
-            ),
-            _ActionTile(
-              icon: Icons.insights_rounded,
-              title: 'My Insights',
-              subtitle: 'Weak topics from your past exams & quizzes',
-              color: AppTheme.warning,
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const WeakTopicsScreen()),
-              ),
-            ),
-            _ActionTile(
-              icon: Icons.emoji_events_rounded,
-              title: 'Leaderboard',
-              subtitle: 'See how you rank against other students',
-              color: AppTheme.danger,
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
-              ),
-            ),
-            _ActionTile(
-              icon: Icons.local_fire_department_rounded,
-              title: 'Streaks & Badges',
-              subtitle: 'Track your study streak and earned badges',
-              color: AppTheme.gold,
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const StreaksScreen()),
-              ),
-            ),
-            _ActionTile(
-              icon: Icons.style_rounded,
-              title: 'Flashcards',
-              subtitle: 'Review questions you\'ve gotten wrong before',
-              color: AppTheme.accent,
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const FlashcardsScreen()),
-              ),
-            ),
-            _ActionTile(
-              icon: Icons.calendar_today_rounded,
-              title: 'Question of the Day',
-              subtitle: 'One question, every student, every day',
-              color: AppTheme.brand,
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const QuestionOfTheDayScreen()),
-              ),
+            const SizedBox(height: 16),
+            GridView.count(
+              crossAxisCount: 4,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 0.82,
+              children: [
+                _GridActionTile(
+                  icon: Icons.smart_toy_rounded,
+                  label: 'AI Tutor',
+                  color: AppTheme.brand2,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AiTutorScreen()),
+                  ),
+                ),
+                _GridActionTile(
+                  icon: Icons.calendar_today_rounded,
+                  label: 'Daily Q',
+                  color: AppTheme.brand,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const QuestionOfTheDayScreen()),
+                  ),
+                ),
+                _GridActionTile(
+                  icon: Icons.style_rounded,
+                  label: 'Flashcards',
+                  color: AppTheme.accent,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const FlashcardsScreen()),
+                  ),
+                ),
+                _GridActionTile(
+                  icon: Icons.insights_rounded,
+                  label: 'Insights',
+                  color: AppTheme.warning,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const WeakTopicsScreen()),
+                  ),
+                ),
+                _GridActionTile(
+                  icon: Icons.emoji_events_rounded,
+                  label: 'Leaderboard',
+                  color: AppTheme.danger,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+                  ),
+                ),
+                _GridActionTile(
+                  icon: Icons.local_fire_department_rounded,
+                  label: 'Streaks',
+                  color: AppTheme.gold,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const StreaksScreen()),
+                  ),
+                ),
+                _GridActionTile(
+                  icon: Icons.calculate_rounded,
+                  label: 'CGPA',
+                  color: AppTheme.success,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const CgpaCalculatorScreen()),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -353,6 +364,49 @@ class _StatCard extends StatelessWidget {
           Text(label,
               style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        ],
+      ),
+    );
+  }
+}
+
+class _GridActionTile extends StatelessWidget {
+  const _GridActionTile({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return PremiumCard(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            height: 40,
+            width: 40,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.14),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11.5),
+          ),
         ],
       ),
     );

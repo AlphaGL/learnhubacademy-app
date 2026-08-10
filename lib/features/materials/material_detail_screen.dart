@@ -2,15 +2,57 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/services/exam_api_service.dart';
+import '../../core/services/offline_cache_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
 import '../exams/models/exam_models.dart';
 import '../exams/start_exam_helper.dart';
 import 'models/material_model.dart';
 
-class MaterialDetailScreen extends StatelessWidget {
-  const MaterialDetailScreen({super.key, required this.material});
+class MaterialDetailScreen extends StatefulWidget {
+  const MaterialDetailScreen({super.key, required this.material, this.isOffline = false});
   final MaterialModel material;
+
+  /// True when this material was opened from an offline-cached copy
+  /// (no live network fetch backing it) — shows a banner instead of the
+  /// offline-toggle button, since toggling would need a network call.
+  final bool isOffline;
+
+  @override
+  State<MaterialDetailScreen> createState() => _MaterialDetailScreenState();
+}
+
+class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
+  MaterialModel get material => widget.material;
+  bool? _cached; // null while loading
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.isOffline) _loadCachedState();
+  }
+
+  Future<void> _loadCachedState() async {
+    final cached = await OfflineCacheService.instance.isCached(material.id);
+    if (mounted) setState(() => _cached = cached);
+  }
+
+  Future<void> _toggleOffline() async {
+    if (_cached == null) return;
+    if (_cached!) {
+      await OfflineCacheService.instance.remove(material.id);
+      if (mounted) setState(() => _cached = false);
+    } else {
+      await OfflineCacheService.instance.cache(material);
+      if (mounted) setState(() => _cached = true);
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(_cached! ? 'Available offline' : 'Removed from offline'),
+        duration: const Duration(seconds: 2),
+      ));
+    }
+  }
 
   Future<void> _open(BuildContext context, String url) async {
     final uri = Uri.tryParse(url);
@@ -43,10 +85,43 @@ class MaterialDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(material.title)),
+      appBar: AppBar(
+        title: Text(material.title),
+        actions: [
+          if (!widget.isOffline)
+            IconButton(
+              tooltip: (_cached ?? false) ? 'Remove from offline' : 'Save for offline',
+              icon: Icon(
+                _cached == null
+                    ? Icons.bookmark_border_rounded
+                    : (_cached! ? Icons.bookmark_rounded : Icons.bookmark_border_rounded),
+              ),
+              onPressed: _cached == null ? null : _toggleOffline,
+            ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (widget.isOffline)
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppTheme.warning.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(AppTheme.rSm),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.offline_pin_rounded, color: AppTheme.warning, size: 18),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text('Viewing an offline copy. Some content may be outdated.',
+                        style: TextStyle(color: AppTheme.warning, fontSize: 12.5)),
+                  ),
+                ],
+              ),
+            ),
           Wrap(
             spacing: 8,
             runSpacing: 8,

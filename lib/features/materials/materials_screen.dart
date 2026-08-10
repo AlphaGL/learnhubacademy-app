@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/services/offline_cache_service.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
@@ -20,6 +21,8 @@ class MaterialsScreen extends StatefulWidget {
 
 class _MaterialsScreenState extends State<MaterialsScreen> {
   late Future<List<MaterialModel>> _future;
+  Set<int> _cachedIds = {};
+  bool _offlineFallback = false;
 
   @override
   void initState() {
@@ -28,15 +31,37 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
   }
 
   Future<List<MaterialModel>> _load() async {
-    final rows = await SupabaseService.client
-        .from(AppConfig.tblMaterial)
-        .select(
-            'id, subject_id, title, material_type, content, file_url, video_url, views')
-        .eq('subject_id', widget.subject.id)
-        .order('created_at', ascending: false);
-    return (rows as List)
-        .map((e) => MaterialModel.fromMap(e as Map<String, dynamic>))
-        .toList();
+    try {
+      final rows = await SupabaseService.client
+          .from(AppConfig.tblMaterial)
+          .select(
+              'id, subject_id, title, material_type, content, file_url, video_url, views')
+          .eq('subject_id', widget.subject.id)
+          .order('created_at', ascending: false);
+      final list = (rows as List)
+          .map((e) => MaterialModel.fromMap(e as Map<String, dynamic>))
+          .toList();
+      final cached = await OfflineCacheService.instance.cachedForSubject(widget.subject.id);
+      if (mounted) {
+        setState(() {
+          _cachedIds = cached.map((m) => m.id).toSet();
+          _offlineFallback = false;
+        });
+      }
+      return list;
+    } catch (_) {
+      // Network unreachable — fall back to whatever was saved for offline
+      // reading (see OfflineCacheService), if anything was.
+      final cached = await OfflineCacheService.instance.cachedForSubject(widget.subject.id);
+      if (cached.isEmpty) rethrow;
+      if (mounted) {
+        setState(() {
+          _cachedIds = cached.map((m) => m.id).toSet();
+          _offlineFallback = true;
+        });
+      }
+      return cached;
+    }
   }
 
   ({IconData icon, Color color, String label}) _kindOf(MaterialModel m) {
@@ -104,16 +129,37 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
             onRefresh: () async => setState(() => _future = _load()),
             child: ListView.separated(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-              itemCount: items.length,
+              itemCount: items.length + (_offlineFallback ? 1 : 0),
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (_, i) {
-                final m = items[i];
+                if (_offlineFallback && i == 0) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.warning.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(AppTheme.rSm),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.offline_pin_rounded, color: AppTheme.warning, size: 18),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text('Showing your offline-saved materials — no connection.',
+                              style: TextStyle(color: AppTheme.warning, fontSize: 12.5)),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                final m = items[i - (_offlineFallback ? 1 : 0)];
                 final k = _kindOf(m);
+                final isCached = _cachedIds.contains(m.id);
                 return PremiumCard(
                   padding: const EdgeInsets.all(14),
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
-                        builder: (_) => MaterialDetailScreen(material: m)),
+                        builder: (_) => MaterialDetailScreen(
+                            material: m, isOffline: _offlineFallback)),
                   ),
                   child: Row(
                     children: [
@@ -154,6 +200,11 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                             .colorScheme
                                             .onSurfaceVariant,
                                         fontSize: 12)),
+                                if (isCached) ...[
+                                  const SizedBox(width: 8),
+                                  const Icon(Icons.bookmark_rounded,
+                                      size: 14, color: AppTheme.warning),
+                                ],
                               ],
                             ),
                           ],

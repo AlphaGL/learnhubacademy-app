@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_controller.dart';
 import '../../shared/widgets/app_widgets.dart';
 import '../exams/exam_history_screen.dart';
+import '../materials/offline_materials_screen.dart';
 import '../notifications/notifications_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -100,6 +101,10 @@ class ProfileScreen extends StatelessWidget {
                 _tile(context, Icons.assignment_turned_in_outlined, 'My Results',
                     () => Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => const ExamHistoryScreen()))),
+                _divider(scheme),
+                _tile(context, Icons.bookmark_outline_rounded, 'Offline Materials',
+                    () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => const OfflineMaterialsScreen()))),
                 _divider(scheme),
                 _tile(context, Icons.workspace_premium_outlined, 'Subscription',
                     () => _comingSoon(context)),

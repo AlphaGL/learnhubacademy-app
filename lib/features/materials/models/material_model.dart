@@ -30,6 +30,17 @@ class MaterialModel {
         views: (m['views'] ?? 0) as int,
       );
 
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'subject_id': subjectId,
+        'title': title,
+        'material_type': materialType,
+        'content': content,
+        'file_url': fileUrl,
+        'video_url': videoUrl,
+        'views': views,
+      };
+
   bool get hasPdf => (fileUrl ?? '').isNotEmpty;
   bool get hasVideo => (videoUrl ?? '').isNotEmpty;
 }

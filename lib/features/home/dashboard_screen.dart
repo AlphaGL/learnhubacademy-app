@@ -13,6 +13,7 @@ import '../insights/weak_topics_screen.dart';
 import '../flashcards/flashcards_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
 import '../notifications/notifications_screen.dart';
+import '../question_of_the_day/question_of_the_day_screen.dart';
 import '../streaks/streaks_screen.dart';
 import '../subjects/subjects_screen.dart';
 
@@ -224,6 +225,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: AppTheme.accent,
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const FlashcardsScreen()),
+              ),
+            ),
+            _ActionTile(
+              icon: Icons.calendar_today_rounded,
+              title: 'Question of the Day',
+              subtitle: 'One question, every student, every day',
+              color: AppTheme.brand,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const QuestionOfTheDayScreen()),
               ),
             ),
           ],

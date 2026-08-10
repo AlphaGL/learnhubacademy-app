@@ -12,6 +12,7 @@ import '../cgpa/cgpa_calculator_screen.dart';
 import '../insights/weak_topics_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
 import '../notifications/notifications_screen.dart';
+import '../streaks/streaks_screen.dart';
 import '../subjects/subjects_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -204,6 +205,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: AppTheme.danger,
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+              ),
+            ),
+            _ActionTile(
+              icon: Icons.local_fire_department_rounded,
+              title: 'Streaks & Badges',
+              subtitle: 'Track your study streak and earned badges',
+              color: AppTheme.gold,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const StreaksScreen()),
               ),
             ),
           ],

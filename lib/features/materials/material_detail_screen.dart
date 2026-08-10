@@ -9,6 +9,7 @@ import '../../core/services/offline_cache_service.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
+import '../ai_tutor/ai_tutor_screen.dart';
 import '../exams/models/exam_models.dart';
 import '../exams/start_exam_helper.dart';
 import 'models/material_image.dart';
@@ -104,8 +105,10 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
     }
   }
 
-  /// Mirrors the web app's "Explain with AI": opens ChatGPT with a rich prompt.
-  Future<void> _explainWithAi(BuildContext context) async {
+  /// Opens the in-house AI Tutor with a ready-made prompt, auto-sent — used
+  /// to open ChatGPT externally, now stays in the app (see AiTutorScreen
+  /// .initialPrompt and the website's matching ai-tutor/?prompt= flow).
+  void _explainWithAi(BuildContext context) {
     final cleaned = material.content.replaceAll(RegExp(r'\s+'), ' ').trim();
     final excerpt =
         cleaned.length > 300 ? cleaned.substring(0, 300) : cleaned;
@@ -118,8 +121,9 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
         'from the basics, with step-by-step reasoning, simple analogies, and at '
         'least one worked example. Highlight key points and common mistakes, then '
         'give me 3 short self-test questions with answers.$snippet';
-    final url = 'https://chat.openai.com/?q=${Uri.encodeComponent(prompt)}';
-    await _open(context, url);
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => AiTutorScreen(initialPrompt: prompt),
+    ));
   }
 
   @override

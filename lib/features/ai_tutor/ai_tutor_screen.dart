@@ -5,7 +5,12 @@ import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
 
 class AiTutorScreen extends StatefulWidget {
-  const AiTutorScreen({super.key});
+  const AiTutorScreen({super.key, this.initialPrompt});
+
+  /// Set when opened from a material's "Explain with AI" — sent
+  /// automatically once history has loaded, same as the website's
+  /// ai-tutor/?prompt= auto-send.
+  final String? initialPrompt;
 
   @override
   State<AiTutorScreen> createState() => _AiTutorScreenState();
@@ -48,6 +53,9 @@ class _AiTutorScreenState extends State<AiTutorScreen> {
         _loadingHistory = false;
       });
       _scrollToBottom();
+      if (widget.initialPrompt != null && widget.initialPrompt!.trim().isNotEmpty) {
+        _send(widget.initialPrompt!.trim());
+      }
     } on AiTutorException catch (e) {
       setState(() {
         _loadError = e.message;
@@ -67,8 +75,8 @@ class _AiTutorScreenState extends State<AiTutorScreen> {
     });
   }
 
-  Future<void> _send() async {
-    final text = _inputController.text.trim();
+  Future<void> _send([String? overrideText]) async {
+    final text = overrideText ?? _inputController.text.trim();
     if (text.isEmpty || _sending) return;
     _inputController.clear();
     final pendingBubble = _ChatBubble(role: 'model', text: 'Thinking…', pending: true);

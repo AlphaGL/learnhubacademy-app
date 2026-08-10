@@ -73,6 +73,36 @@ create policy "own profile update" on public.app_profiles
 
 grant select, insert, update on table public.app_profiles to authenticated;
 
+-- RLS above only restricts WHICH ROW a user can touch, not which COLUMNS —
+-- "own profile update" would otherwise let a signed-in user set their own
+-- is_subscribed=true (or repoint django_user_id) via a plain Supabase client
+-- update call. Real subscription status is decided server-side by Django's
+-- Subscription model (see learning/views.py _has_active_subscription,
+-- exposed to the app via /api/exam-token/) — this column is now vestigial
+-- for gating, but the hole is worth closing regardless. auth.role() is only
+-- ever 'authenticated' for PostgREST-mediated requests (i.e. the app itself);
+-- Django's own direct DATABASE_URL connection has no JWT context, so this
+-- trigger doesn't affect Django's own writes (e.g. supabase_bridge.py's
+-- django_user_id linking).
+create or replace function public.protect_app_profile_columns()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if auth.role() = 'authenticated' then
+    new.is_subscribed := old.is_subscribed;
+    new.django_user_id := old.django_user_id;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_app_profile_columns on public.app_profiles;
+create trigger protect_app_profile_columns
+  before update on public.app_profiles
+  for each row execute function public.protect_app_profile_columns();
+
 -- Create a profile row automatically whenever a new auth user signs up.
 create or replace function public.handle_new_user()
 returns trigger

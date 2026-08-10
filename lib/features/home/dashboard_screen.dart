@@ -10,6 +10,7 @@ import '../../shared/widgets/skeletons.dart';
 import '../ai_tutor/ai_tutor_screen.dart';
 import '../cgpa/cgpa_calculator_screen.dart';
 import '../insights/weak_topics_screen.dart';
+import '../flashcards/flashcards_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../streaks/streaks_screen.dart';
@@ -214,6 +215,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: AppTheme.gold,
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const StreaksScreen()),
+              ),
+            ),
+            _ActionTile(
+              icon: Icons.style_rounded,
+              title: 'Flashcards',
+              subtitle: 'Review questions you\'ve gotten wrong before',
+              color: AppTheme.accent,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const FlashcardsScreen()),
               ),
             ),
           ],

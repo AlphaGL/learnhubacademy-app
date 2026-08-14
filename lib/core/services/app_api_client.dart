@@ -63,6 +63,17 @@ class AppApiClient {
     return _isSubscribed ?? false;
   }
 
+  /// A valid bearer token, fetching one first if needed — for callers that
+  /// need to build their own Authorization header (e.g. background_downloader
+  /// downloading a file directly, which doesn't go through [request]).
+  Future<String> ensureToken() async {
+    _token ??= await _fetchToken();
+    if (_token == null) {
+      throw const AppApiException('Sign in again to use this feature.');
+    }
+    return _token!;
+  }
+
   Future<http.Response> request(
     String method,
     String path, {

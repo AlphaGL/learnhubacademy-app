@@ -10,6 +10,7 @@ import '../../shared/widgets/app_widgets.dart';
 import '../../shared/widgets/skeletons.dart';
 import '../ai_tutor/ai_tutor_screen.dart';
 import '../cgpa/cgpa_calculator_screen.dart';
+import '../docstudio/docstudio_home_screen.dart';
 import '../insights/weak_topics_screen.dart';
 import '../flashcards/flashcards_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
@@ -186,6 +187,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: AppTheme.brand2,
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const StudyGroupsListScreen()),
+              ),
+            ),
+            _ActionTile(
+              icon: Icons.auto_awesome_rounded,
+              title: 'Document Studio',
+              subtitle: 'AI-drafted projects, reports & slides — edit and download',
+              color: AppTheme.gold,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const DocStudioHomeScreen()),
               ),
             ),
             const SizedBox(height: 16),

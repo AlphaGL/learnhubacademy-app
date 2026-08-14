@@ -4,6 +4,9 @@
     <!-- Lets the in-app updater launch the system package installer with the
          downloaded APK (see core/services/app_updater.dart). -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+    <!-- AI Tutor attachments: voice notes and taking a photo of a problem. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
     <application
         android:label="LearnHub Academy"
         android:name="${applicationName}"

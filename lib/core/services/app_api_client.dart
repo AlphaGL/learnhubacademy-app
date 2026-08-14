@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 import '../config/app_config.dart';
 import 'supabase_service.dart';
@@ -107,6 +108,50 @@ class AppApiClient {
       response = await attempt(_token!);
     }
     return response;
+  }
+
+  /// Multipart POST — for endpoints that take a file (e.g. AI Tutor image/
+  /// voice-note attachments), which a plain JSON body can't carry. [fields]
+  /// are form fields; [fileField]/[fileBytes]/[filename]/[contentType] are
+  /// optional and only sent when a file is actually attached.
+  Future<http.Response> requestMultipart(
+    String path, {
+    Map<String, String> fields = const {},
+    String? fileField,
+    List<int>? fileBytes,
+    String? filename,
+    String? contentType,
+  }) async {
+    Future<http.StreamedResponse> attempt(String token) {
+      final uri = Uri.parse('${AppConfig.siteUrl}$path');
+      final request = http.MultipartRequest('POST', uri)
+        ..headers['Authorization'] = 'Bearer $token'
+        ..fields.addAll(fields);
+      if (fileField != null && fileBytes != null) {
+        request.files.add(http.MultipartFile.fromBytes(
+          fileField,
+          fileBytes,
+          filename: filename,
+          contentType: contentType == null ? null : MediaType.parse(contentType),
+        ));
+      }
+      return request.send().timeout(const Duration(seconds: 60));
+    }
+
+    _token ??= await _fetchToken();
+    if (_token == null) {
+      throw const AppApiException('Sign in again to use this feature.');
+    }
+
+    var streamed = await attempt(_token!);
+    if (streamed.statusCode == 401) {
+      _token = await _fetchToken();
+      if (_token == null) {
+        throw const AppApiException('Sign in again to use this feature.');
+      }
+      streamed = await attempt(_token!);
+    }
+    return http.Response.fromStream(streamed);
   }
 
   /// Raises [AppApiException] for non-2xx responses, using the server's

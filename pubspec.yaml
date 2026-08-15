@@ -51,7 +51,7 @@ dependencies:
 
   # --- AI Tutor attachments: photo of a problem, voice notes ---
   image_picker: ^1.1.2
-  record: ^5.1.2
+  record: ^6.0.0
   path_provider: ^2.1.4
 
   # --- Study Notes: pick a PDF to upload ---

@@ -54,6 +54,9 @@ dependencies:
   record: ^5.1.2
   path_provider: ^2.1.4
 
+  # --- Study Notes: pick a PDF to upload ---
+  file_picker: ^8.1.4
+
 dev_dependencies:
   flutter_lints: ^4.0.0
   flutter_test:

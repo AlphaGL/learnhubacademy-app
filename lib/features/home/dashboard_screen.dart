@@ -11,6 +11,7 @@ import '../../shared/widgets/skeletons.dart';
 import '../ai_tutor/ai_tutor_screen.dart';
 import '../cgpa/cgpa_calculator_screen.dart';
 import '../docstudio/docstudio_home_screen.dart';
+import '../studynotes/studynotes_home_screen.dart';
 import '../insights/weak_topics_screen.dart';
 import '../flashcards/flashcards_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
@@ -196,6 +197,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: AppTheme.gold,
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const DocStudioHomeScreen()),
+              ),
+            ),
+            _ActionTile(
+              icon: Icons.file_present_rounded,
+              title: 'Study Notes',
+              subtitle: 'Upload a PDF — AI reads it and summarizes it for revision',
+              color: AppTheme.brand,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const StudyNotesHomeScreen()),
               ),
             ),
             const SizedBox(height: 16),

@@ -16,6 +16,7 @@ class StudyNoteModel {
     required this.sourceFilename,
     required this.summary,
     required this.status,
+    required this.audioUrl,
     required this.isUnlocked,
     required this.updatedAt,
   });
@@ -24,6 +25,7 @@ class StudyNoteModel {
   final String sourceFilename;
   final String summary;
   final String status; // 'draft' | 'ready'
+  final String audioUrl;
   final bool isUnlocked;
   final String updatedAt;
 
@@ -33,6 +35,7 @@ class StudyNoteModel {
         sourceFilename: (j['source_filename'] ?? '') as String,
         summary: (j['summary'] ?? '') as String,
         status: j['status'] as String,
+        audioUrl: (j['audio_url'] ?? '') as String,
         isUnlocked: j['is_unlocked'] as bool,
         updatedAt: j['updated_at'] as String,
       );
@@ -56,20 +59,27 @@ class StudyNotesApiService {
     }
   }
 
-  Future<({List<StudyNoteModel> notes, bool isSubscriber, bool usedToday, int maxUploadBytes})>
-      home() => _run(() async {
-            final resp = await _client.request('GET', '/api/studynotes/');
-            _client.checkOk(resp);
-            final data = jsonDecode(resp.body) as Map<String, dynamic>;
-            return (
-              notes: (data['notes'] as List)
-                  .map((e) => StudyNoteModel.fromJson(e as Map<String, dynamic>))
-                  .toList(),
-              isSubscriber: data['is_subscriber'] as bool,
-              usedToday: data['used_today'] as bool,
-              maxUploadBytes: data['max_upload_bytes'] as int,
-            );
-          });
+  Future<
+      ({
+        List<StudyNoteModel> notes,
+        bool isSubscriber,
+        bool usedToday,
+        bool usedAudioToday,
+        int maxUploadBytes
+      })> home() => _run(() async {
+        final resp = await _client.request('GET', '/api/studynotes/');
+        _client.checkOk(resp);
+        final data = jsonDecode(resp.body) as Map<String, dynamic>;
+        return (
+          notes: (data['notes'] as List)
+              .map((e) => StudyNoteModel.fromJson(e as Map<String, dynamic>))
+              .toList(),
+          isSubscriber: data['is_subscriber'] as bool,
+          usedToday: data['used_today'] as bool,
+          usedAudioToday: data['used_audio_today'] as bool,
+          maxUploadBytes: data['max_upload_bytes'] as int,
+        );
+      });
 
   Future<StudyNoteModel> create({
     required String title,
@@ -108,6 +118,17 @@ class StudyNotesApiService {
           resp,
           subscriptionStatus: 429,
           subscriptionMessage: "You've used your AI summary for today — come back tomorrow.",
+        );
+        final data = jsonDecode(resp.body) as Map<String, dynamic>;
+        return StudyNoteModel.fromJson(data['note'] as Map<String, dynamic>);
+      });
+
+  Future<StudyNoteModel> generateAudio(int noteId) => _run(() async {
+        final resp = await _client.request('POST', '/api/studynotes/$noteId/generate-audio/');
+        _client.checkOk(
+          resp,
+          subscriptionStatus: 429,
+          subscriptionMessage: "You've used your audio generation for today — come back tomorrow.",
         );
         final data = jsonDecode(resp.body) as Map<String, dynamic>;
         return StudyNoteModel.fromJson(data['note'] as Map<String, dynamic>);

@@ -20,6 +20,7 @@ class _StudyNoteDetailScreenState extends State<StudyNoteDetailScreen> {
   String? _loadError;
   bool _unlocking = false;
   bool _generating = false;
+  bool _generatingAudio = false;
 
   @override
   void initState() {
@@ -70,6 +71,22 @@ class _StudyNoteDetailScreenState extends State<StudyNoteDetailScreen> {
     } finally {
       if (mounted) setState(() => _generating = false);
     }
+  }
+
+  Future<void> _generateAudio() async {
+    setState(() => _generatingAudio = true);
+    try {
+      final updated = await StudyNotesApiService.instance.generateAudio(widget.noteId);
+      if (mounted) setState(() => _note = updated);
+    } on StudyNotesException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) setState(() => _generatingAudio = false);
+    }
+  }
+
+  Future<void> _playAudio(String url) async {
+    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
   }
 
   Future<void> _delete() async {
@@ -153,6 +170,10 @@ class _StudyNoteDetailScreenState extends State<StudyNoteDetailScreen> {
         if (!note.isUnlocked) _buildPaywall() else _buildGenerateSection(note),
         const SizedBox(height: 16),
         _buildSummary(note),
+        if (note.isUnlocked && note.summary.trim().isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _buildAudioSection(note),
+        ],
       ],
     );
   }
@@ -189,6 +210,49 @@ class _StudyNoteDetailScreenState extends State<StudyNoteDetailScreen> {
       icon: Icons.auto_awesome_rounded,
       loading: _generating,
       onPressed: _generating ? null : _generate,
+    );
+  }
+
+  Widget _buildAudioSection(StudyNoteModel note) {
+    final hasAudio = note.audioUrl.isNotEmpty;
+    return PremiumCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.headphones_rounded, color: AppTheme.brand, size: 20),
+              const SizedBox(width: 8),
+              const Text('Listen as a conversation',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            hasAudio
+                ? 'AI turned this summary into a two-person conversation.'
+                : 'Turn this summary into a natural two-person conversation you can listen to.',
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12.5),
+          ),
+          const SizedBox(height: 12),
+          if (hasAudio)
+            OutlinedButton.icon(
+              onPressed: () => _playAudio(note.audioUrl),
+              icon: const Icon(Icons.play_circle_fill_rounded, size: 18),
+              label: const Text('Play conversation'),
+            )
+          else
+            OutlinedButton.icon(
+              onPressed: _generatingAudio ? null : _generateAudio,
+              icon: _generatingAudio
+                  ? const SizedBox(
+                      height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.mic_rounded, size: 18),
+              label: Text(_generatingAudio ? 'Recording conversation…' : 'Generate audio version'),
+            ),
+        ],
+      ),
     );
   }
 

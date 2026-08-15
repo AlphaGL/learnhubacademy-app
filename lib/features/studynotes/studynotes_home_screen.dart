@@ -16,8 +16,14 @@ class StudyNotesHomeScreen extends StatefulWidget {
 }
 
 class _StudyNotesHomeScreenState extends State<StudyNotesHomeScreen> {
-  late Future<({List<StudyNoteModel> notes, bool isSubscriber, bool usedToday, int maxUploadBytes})>
-      _future;
+  late Future<
+      ({
+        List<StudyNoteModel> notes,
+        bool isSubscriber,
+        bool usedToday,
+        bool usedAudioToday,
+        int maxUploadBytes
+      })> _future;
 
   @override
   void initState() {

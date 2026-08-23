@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/services/studynotes_api_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
 import '../../shared/widgets/skeletons.dart';
+
+const _pricingUrl = '${AppConfig.siteUrl}/pricing/';
 
 class StudyNoteDetailScreen extends StatefulWidget {
   const StudyNoteDetailScreen({super.key, required this.noteId});
@@ -18,7 +21,7 @@ class _StudyNoteDetailScreenState extends State<StudyNoteDetailScreen> {
   StudyNoteModel? _note;
   bool _loading = true;
   String? _loadError;
-  bool _unlocking = false;
+  bool _openingPricing = false;
   bool _generating = false;
   bool _generatingAudio = false;
 
@@ -43,21 +46,18 @@ class _StudyNoteDetailScreenState extends State<StudyNoteDetailScreen> {
     }
   }
 
-  Future<void> _unlock() async {
-    setState(() => _unlocking = true);
+  Future<void> _openPricing() async {
+    setState(() => _openingPricing = true);
     try {
-      final url = await StudyNotesApiService.instance.initiatePayment(widget.noteId);
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      await launchUrl(Uri.parse(_pricingUrl), mode: LaunchMode.externalApplication);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Complete payment in your browser, then come back and pull to refresh.'),
+          content: Text('Subscribe in your browser, then come back and pull to refresh.'),
           duration: Duration(seconds: 5),
         ));
       }
-    } on StudyNotesException catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
     } finally {
-      if (mounted) setState(() => _unlocking = false);
+      if (mounted) setState(() => _openingPricing = false);
     }
   }
 
@@ -187,13 +187,18 @@ class _StudyNoteDetailScreenState extends State<StudyNoteDetailScreen> {
         children: [
           const Icon(Icons.lock_outline_rounded, color: Colors.white, size: 28),
           const SizedBox(height: 10),
-          const Text('Unlock this note',
+          const Text('Subscription required',
               style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18)),
           const SizedBox(height: 6),
-          const Text('Pay ₦500 to get your AI summary, or subscribe for free access.',
+          const Text('Study Notes is a subscriber-only feature — your subscription isn\'t active right now.',
               style: TextStyle(color: Colors.white70)),
           const SizedBox(height: 16),
-          GradientButton(label: 'Unlock for ₦500', loading: _unlocking, onPressed: _unlocking ? null : _unlock),
+          GradientButton(
+            label: 'Subscribe',
+            icon: Icons.star_rounded,
+            loading: _openingPricing,
+            onPressed: _openingPricing ? null : _openPricing,
+          ),
         ],
       ),
     );

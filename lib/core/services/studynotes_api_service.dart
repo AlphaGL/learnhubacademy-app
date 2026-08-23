@@ -42,9 +42,9 @@ class StudyNoteModel {
 }
 
 /// Mirrors studynotes/views.py — upload a PDF, AI reads and summarizes it.
-/// Capped at one summary a day per student (subscriber or not) to bound
-/// Gemini token spend on document-sized input; non-subscribers additionally
-/// pay ₦500 per note via the same Paystack flow as Document Studio.
+/// Subscriber-only (no pay-per-use, unlike Document Studio), and capped at
+/// one summary a day per student to bound Gemini token spend on
+/// document-sized input.
 class StudyNotesApiService {
   StudyNotesApiService._();
   static final StudyNotesApiService instance = StudyNotesApiService._();
@@ -132,12 +132,5 @@ class StudyNotesApiService {
         );
         final data = jsonDecode(resp.body) as Map<String, dynamic>;
         return StudyNoteModel.fromJson(data['note'] as Map<String, dynamic>);
-      });
-
-  Future<String> initiatePayment(int noteId) => _run(() async {
-        final resp = await _client.request('POST', '/api/studynotes/$noteId/pay/');
-        _client.checkOk(resp);
-        final data = jsonDecode(resp.body) as Map<String, dynamic>;
-        return data['authorization_url'] as String;
       });
 }

@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/services/studynotes_api_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
 import '../../shared/widgets/skeletons.dart';
 import 'study_note_create_screen.dart';
 import 'study_note_detail_screen.dart';
+
+const _pricingUrl = '${AppConfig.siteUrl}/pricing/';
 
 class StudyNotesHomeScreen extends StatefulWidget {
   const StudyNotesHomeScreen({super.key});
@@ -48,6 +52,11 @@ class _StudyNotesHomeScreenState extends State<StudyNotesHomeScreen> {
         .then((_) => _refresh());
   }
 
+  Future<void> _openPricing() async {
+    await launchUrl(Uri.parse(_pricingUrl), mode: LaunchMode.externalApplication);
+    _refresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,8 +95,8 @@ class _StudyNotesHomeScreenState extends State<StudyNotesHomeScreen> {
                       const SizedBox(height: 6),
                       Text(
                         result.isSubscriber
-                            ? "You're a subscriber — Study Notes is free."
-                            : 'Free for subscribers, or ₦500 per note.',
+                            ? "You're a subscriber — you have full access."
+                            : 'Subscriber-only feature — subscribe to start using it.',
                         style: const TextStyle(color: Colors.white70),
                       ),
                       const SizedBox(height: 4),
@@ -97,14 +106,15 @@ class _StudyNotesHomeScreenState extends State<StudyNotesHomeScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton.icon(
-                          onPressed: _openCreate,
+                          onPressed: result.isSubscriber ? _openCreate : _openPricing,
                           style: FilledButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor: AppTheme.brand,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
-                          icon: const Icon(Icons.upload_file_rounded),
-                          label: const Text('Upload a PDF', style: TextStyle(fontWeight: FontWeight.w700)),
+                          icon: Icon(result.isSubscriber ? Icons.upload_file_rounded : Icons.star_rounded),
+                          label: Text(result.isSubscriber ? 'Upload a PDF' : 'Subscribe to unlock',
+                              style: const TextStyle(fontWeight: FontWeight.w700)),
                         ),
                       ),
                     ],

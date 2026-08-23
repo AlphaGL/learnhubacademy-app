@@ -202,7 +202,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _ActionTile(
               icon: Icons.file_present_rounded,
               title: 'Study Notes',
-              subtitle: 'Upload a PDF — AI reads it and summarizes it for revision',
+              subtitle: 'Browse published notes & tests, or upload your own PDF to summarize',
               color: AppTheme.brand,
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const StudyNotesHomeScreen()),

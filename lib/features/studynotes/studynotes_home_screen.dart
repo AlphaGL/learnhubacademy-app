@@ -105,35 +105,64 @@ class _StudyNotesHomeScreenState extends State<StudyNotesHomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.file_present_rounded, color: Colors.white, size: 28),
+                      const Icon(Icons.school_rounded, color: Colors.white, size: 28),
                       const SizedBox(height: 10),
-                      const Text('Upload a PDF, get an AI summary',
+                      const Text('Study Library',
                           style: TextStyle(
                               color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18)),
                       const SizedBox(height: 6),
-                      Text(
-                        result.isSubscriber
-                            ? "You're a subscriber — you have full access."
-                            : 'Subscriber-only feature — subscribe to start using it.',
-                        style: const TextStyle(color: Colors.white70),
+                      const Text(
+                        'Browse notes other students have published, organized by level — read '
+                        'the summary, then take the CBT or Theory test to check your understanding.',
+                        style: TextStyle(color: Colors.white70),
                       ),
-                      const SizedBox(height: 4),
-                      const Text('Limited to one AI summary a day, so it stays available for everyone.',
-                          style: TextStyle(color: Colors.white60, fontSize: 12.5)),
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton.icon(
-                          onPressed: result.isSubscriber ? _openCreate : _openPricing,
+                          onPressed: _openLibrary,
                           style: FilledButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor: AppTheme.brand,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
-                          icon: Icon(result.isSubscriber ? Icons.upload_file_rounded : Icons.star_rounded),
-                          label: Text(result.isSubscriber ? 'Upload a PDF' : 'Subscribe to unlock',
-                              style: const TextStyle(fontWeight: FontWeight.w700)),
+                          icon: const Icon(Icons.school_rounded),
+                          label: const Text('Browse Study Library',
+                              style: TextStyle(fontWeight: FontWeight.w700)),
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                PremiumCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Have your own PDF to summarize?',
+                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                            const SizedBox(height: 4),
+                            Text(
+                              result.isSubscriber
+                                  ? 'Limited to one AI summary a day.'
+                                  : 'Subscriber-only feature.',
+                              style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      OutlinedButton.icon(
+                        onPressed: result.isSubscriber ? _openCreate : _openPricing,
+                        icon: Icon(result.isSubscriber ? Icons.upload_file_rounded : Icons.star_rounded,
+                            size: 18),
+                        label: Text(result.isSubscriber ? 'Upload' : 'Subscribe'),
                       ),
                     ],
                   ),

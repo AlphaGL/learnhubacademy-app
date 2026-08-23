@@ -6,8 +6,20 @@ import '../../core/services/studynotes_api_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
 import '../../shared/widgets/skeletons.dart';
+import 'library_note_detail_screen.dart';
 
 const _pricingUrl = '${AppConfig.siteUrl}/pricing/';
+
+// Fixed, small vocabulary matching studynotes/models.py's LEVEL_CHOICES —
+// not worth a network round-trip just for this dropdown.
+const _levelOptions = [
+  ('100L', '100 Level'),
+  ('200L', '200 Level'),
+  ('300L', '300 Level'),
+  ('400L', '400 Level'),
+  ('500L', '500 Level'),
+  ('600L', '600 Level'),
+];
 
 class StudyNoteDetailScreen extends StatefulWidget {
   const StudyNoteDetailScreen({super.key, required this.noteId});
@@ -24,6 +36,16 @@ class _StudyNoteDetailScreenState extends State<StudyNoteDetailScreen> {
   bool _openingPricing = false;
   bool _generating = false;
   bool _generatingAudio = false;
+  bool _publishing = false;
+  String? _selectedLevel;
+  String _selectedTestType = 'cbt';
+  final _courseController = TextEditingController();
+
+  @override
+  void dispose() {
+    _courseController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -82,6 +104,28 @@ class _StudyNoteDetailScreenState extends State<StudyNoteDetailScreen> {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
     } finally {
       if (mounted) setState(() => _generatingAudio = false);
+    }
+  }
+
+  Future<void> _publish() async {
+    if (_selectedLevel == null || _courseController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Please choose a level and course.')));
+      return;
+    }
+    setState(() => _publishing = true);
+    try {
+      final updated = await StudyNotesApiService.instance.publish(
+        widget.noteId,
+        level: _selectedLevel!,
+        courseName: _courseController.text.trim(),
+        testType: _selectedTestType,
+      );
+      if (mounted) setState(() => _note = updated);
+    } on StudyNotesException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) setState(() => _publishing = false);
     }
   }
 
@@ -173,8 +217,100 @@ class _StudyNoteDetailScreenState extends State<StudyNoteDetailScreen> {
         if (note.isUnlocked && note.summary.trim().isNotEmpty) ...[
           const SizedBox(height: 16),
           _buildAudioSection(note),
+          const SizedBox(height: 16),
+          _buildPublishSection(note),
         ],
       ],
+    );
+  }
+
+  Widget _buildPublishSection(StudyNoteModel note) {
+    if (note.isPublished) {
+      return PremiumCard(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: AppTheme.success, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text('Published to ${note.level} · ${note.courseName}',
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => LibraryNoteDetailScreen(noteId: note.id),
+              )),
+              child: const Text('View'),
+            ),
+          ],
+        ),
+      );
+    }
+    return PremiumCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Publish to the Level library',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)),
+          const SizedBox(height: 6),
+          Text(
+            'Share this note with other students. AI will generate a CBT or Theory test from it once.',
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12.5),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            initialValue: _selectedLevel,
+            decoration: const InputDecoration(labelText: 'Level', isDense: true),
+            items: [
+              for (final (value, label) in _levelOptions)
+                DropdownMenuItem(value: value, child: Text(label)),
+            ],
+            onChanged: (v) => setState(() => _selectedLevel = v),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _courseController,
+            decoration: const InputDecoration(
+              labelText: 'Course',
+              hintText: 'e.g. MTH201 or Cell Biology',
+              isDense: true,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: RadioListTile<String>(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  title: const Text('CBT'),
+                  value: 'cbt',
+                  groupValue: _selectedTestType,
+                  onChanged: (v) => setState(() => _selectedTestType = v!),
+                ),
+              ),
+              Expanded(
+                child: RadioListTile<String>(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  title: const Text('Theory'),
+                  value: 'theory',
+                  groupValue: _selectedTestType,
+                  onChanged: (v) => setState(() => _selectedTestType = v!),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          GradientButton(
+            label: _publishing ? 'Generating test…' : 'Publish',
+            icon: Icons.upload_rounded,
+            loading: _publishing,
+            onPressed: _publishing ? null : _publish,
+          ),
+        ],
+      ),
     );
   }
 

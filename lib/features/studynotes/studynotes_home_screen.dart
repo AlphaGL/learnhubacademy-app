@@ -7,6 +7,7 @@ import '../../core/services/studynotes_api_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
 import '../../shared/widgets/skeletons.dart';
+import 'study_library_screen.dart';
 import 'study_note_create_screen.dart';
 import 'study_note_detail_screen.dart';
 
@@ -26,7 +27,9 @@ class _StudyNotesHomeScreenState extends State<StudyNotesHomeScreen> {
         bool isSubscriber,
         bool usedToday,
         bool usedAudioToday,
-        int maxUploadBytes
+        bool usedPublishToday,
+        int maxUploadBytes,
+        List<LevelOption> levelChoices,
       })> _future;
 
   @override
@@ -52,6 +55,12 @@ class _StudyNotesHomeScreenState extends State<StudyNotesHomeScreen> {
         .then((_) => _refresh());
   }
 
+  void _openLibrary() {
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const StudyLibraryScreen()))
+        .then((_) => _refresh());
+  }
+
   Future<void> _openPricing() async {
     await launchUrl(Uri.parse(_pricingUrl), mode: LaunchMode.externalApplication);
     _refresh();
@@ -60,7 +69,16 @@ class _StudyNotesHomeScreenState extends State<StudyNotesHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Study Notes')),
+      appBar: AppBar(
+        title: const Text('Study Notes'),
+        actions: [
+          IconButton(
+            onPressed: _openLibrary,
+            icon: const Icon(Icons.school_outlined),
+            tooltip: 'Study Library',
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: FutureBuilder(
@@ -185,6 +203,10 @@ class _NoteRow extends StatelessWidget {
                       const Icon(Icons.lock_open_rounded, size: 13, color: AppTheme.success)
                     else
                       const Icon(Icons.lock_outline_rounded, size: 13, color: AppTheme.warning),
+                    if (note.isPublished) ...[
+                      const SizedBox(width: 6),
+                      Pill('Published (${note.level})', color: AppTheme.success),
+                    ],
                     if (updated != null) ...[
                       const SizedBox(width: 6),
                       Text(DateFormat('MMM d').format(updated),

@@ -20,11 +20,13 @@ class DocumentEditorScreen extends StatefulWidget {
   State<DocumentEditorScreen> createState() => _DocumentEditorScreenState();
 }
 
+const _pricingUrl = '${AppConfig.siteUrl}/pricing/';
+
 class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   DocumentModel? _document;
   bool _loading = true;
   String? _loadError;
-  bool _unlocking = false;
+  bool _openingPricing = false;
   bool _generatingAll = false;
   bool _downloading = false;
   final Set<int> _generatingSectionIds = {};
@@ -50,21 +52,18 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  Future<void> _unlock() async {
-    setState(() => _unlocking = true);
+  Future<void> _openPricing() async {
+    setState(() => _openingPricing = true);
     try {
-      final url = await DocStudioApiService.instance.initiatePayment(widget.documentId);
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      await launchUrl(Uri.parse(_pricingUrl), mode: LaunchMode.externalApplication);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Complete payment in your browser, then come back and pull to refresh.'),
+          content: Text('Subscribe in your browser, then come back and pull to refresh.'),
           duration: Duration(seconds: 5),
         ));
       }
-    } on DocStudioException catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
     } finally {
-      if (mounted) setState(() => _unlocking = false);
+      if (mounted) setState(() => _openingPricing = false);
     }
   }
 
@@ -291,16 +290,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             children: [
               const Icon(Icons.lock_outline_rounded, color: Colors.white, size: 28),
               const SizedBox(height: 10),
-              const Text('Unlock this document',
+              const Text('Subscription required',
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18)),
               const SizedBox(height: 6),
-              const Text('Pay ₦500 to generate and download this document, or subscribe for free access.',
+              const Text('Document Studio is a subscriber-only feature — your subscription isn\'t active right now.',
                   style: TextStyle(color: Colors.white70)),
               const SizedBox(height: 16),
               GradientButton(
-                label: 'Unlock for ₦500',
-                loading: _unlocking,
-                onPressed: _unlocking ? null : _unlock,
+                label: 'Subscribe',
+                icon: Icons.star_rounded,
+                loading: _openingPricing,
+                onPressed: _openingPricing ? null : _openPricing,
               ),
             ],
           ),

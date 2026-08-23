@@ -96,6 +96,7 @@ class DocumentModel {
 
 /// Mirrors docstudio/views.py — AI-drafted projects/reports/slides, edited
 /// section by section, then downloaded as a real .docx/.pptx.
+/// Subscriber-only (no pay-per-use).
 class DocStudioApiService {
   DocStudioApiService._();
   static final DocStudioApiService instance = DocStudioApiService._();
@@ -201,12 +202,5 @@ class DocStudioApiService {
             'POST', '/api/docstudio/documents/$documentId/sections/reorder/',
             body: {'order': orderedSectionIds});
         _client.checkOk(resp);
-      });
-
-  Future<String> initiatePayment(int documentId) => _run(() async {
-        final resp = await _client.request('POST', '/api/docstudio/documents/$documentId/pay/');
-        _client.checkOk(resp);
-        final data = jsonDecode(resp.body) as Map<String, dynamic>;
-        return data['authorization_url'] as String;
       });
 }

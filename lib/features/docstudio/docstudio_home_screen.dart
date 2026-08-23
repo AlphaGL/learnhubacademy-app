@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/services/docstudio_api_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
 import '../../shared/widgets/skeletons.dart';
 import 'document_create_screen.dart';
 import 'document_editor_screen.dart';
+
+const _pricingUrl = '${AppConfig.siteUrl}/pricing/';
 
 IconData docTypeIcon(String slug) {
   switch (slug) {
@@ -55,6 +59,11 @@ class _DocStudioHomeScreenState extends State<DocStudioHomeScreen> {
         .then((_) => _refresh());
   }
 
+  Future<void> _openPricing() async {
+    await launchUrl(Uri.parse(_pricingUrl), mode: LaunchMode.externalApplication);
+    _refresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,10 +105,27 @@ class _DocStudioHomeScreenState extends State<DocStudioHomeScreen> {
                           const SizedBox(height: 6),
                           Text(
                             result.isSubscriber
-                                ? "You're a subscriber — Document Studio is free."
-                                : 'Free for subscribers, or ₦500 per document.',
+                                ? "You're a subscriber — you have full access."
+                                : 'Subscriber-only feature — subscribe to start using it.',
                             style: const TextStyle(color: Colors.white70),
                           ),
+                          if (!result.isSubscriber) ...[
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: FilledButton.icon(
+                                onPressed: _openPricing,
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: AppTheme.brand,
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                                icon: const Icon(Icons.star_rounded),
+                                label: const Text('Subscribe to unlock',
+                                    style: TextStyle(fontWeight: FontWeight.w700)),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

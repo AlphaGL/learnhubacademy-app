@@ -211,12 +211,6 @@ class AmbassadorApiService {
         return AmbassadorStatus.fromJson(jsonDecode(resp.body) as Map<String, dynamic>);
       });
 
-  Future<void> join() => _run(() async {
-        final resp = await _client.request('POST', '/api/ambassador/join/');
-        _client.checkOk(resp,
-            subscriptionMessage: 'An active subscription is required to join.');
-      });
-
   Future<AmbassadorDashboard> dashboard() => _run(() async {
         final resp = await _client.request('GET', '/api/ambassador/dashboard/');
         _client.checkOk(resp);

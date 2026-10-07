@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/services/ambassador_api_service.dart';
 import '../../core/services/app_api_client.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/supabase_service.dart';
@@ -23,15 +24,21 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  static const _privacyUrl = 'https://best-learnhub.vercel.app/privacy';
+  static const _privacyUrl = '${AppConfig.siteUrl}/privacy';
   static const _pricingUrl = '${AppConfig.siteUrl}/pricing/';
 
   bool? _subscribed;
+  // The Ambassador Programme is invite-only — admin picks who joins from
+  // outside the app, so this tile only shows for students who are already
+  // ambassadors. Defaults to hidden (not loading-shown-then-hidden) to avoid
+  // a flash of a tile most students will never be able to use.
+  bool _isAmbassador = false;
 
   @override
   void initState() {
     super.initState();
     _loadSubscription();
+    _loadAmbassadorStatus();
   }
 
   Future<void> _loadSubscription() async {
@@ -40,6 +47,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) setState(() => _subscribed = subscribed);
     } catch (_) {
       if (mounted) setState(() => _subscribed = false);
+    }
+  }
+
+  Future<void> _loadAmbassadorStatus() async {
+    try {
+      final status = await AmbassadorApiService.instance.status();
+      if (mounted) setState(() => _isAmbassador = status.isAmbassador);
+    } catch (_) {
+      // Leave hidden on failure — better than showing a tile that 403s.
     }
   }
 
@@ -128,10 +144,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Column(
               children: [
-                _tile(context, Icons.people_alt_outlined, 'Ambassador Programme',
-                    () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => const AmbassadorHomeScreen()))),
-                _divider(scheme),
+                // Invite-only — only ever shown to students admin has
+                // already registered as an ambassador.
+                if (_isAmbassador) ...[
+                  _tile(context, Icons.people_alt_outlined, 'Ambassador Programme',
+                      () => Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const AmbassadorHomeScreen()))),
+                  _divider(scheme),
+                ],
                 _tile(context, Icons.emoji_events_outlined, 'Excellence Awards',
                     () => Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => const AwardsHomeScreen()))),

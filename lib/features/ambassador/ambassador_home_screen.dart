@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import '../../core/config/app_config.dart';
 import '../../core/services/ambassador_api_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
@@ -19,30 +17,11 @@ class AmbassadorHomeScreen extends StatefulWidget {
 
 class _AmbassadorHomeScreenState extends State<AmbassadorHomeScreen> {
   late Future<AmbassadorStatus> _future;
-  bool _joining = false;
 
   @override
   void initState() {
     super.initState();
     _future = AmbassadorApiService.instance.status();
-  }
-
-  Future<void> _join() async {
-    setState(() => _joining = true);
-    try {
-      await AmbassadorApiService.instance.join();
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const AmbassadorDashboardScreen()),
-        );
-      }
-    } on AmbassadorException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
-      }
-    } finally {
-      if (mounted) setState(() => _joining = false);
-    }
   }
 
   @override
@@ -127,38 +106,28 @@ class _AmbassadorHomeScreenState extends State<AmbassadorHomeScreen> {
             ),
           ),
         const SizedBox(height: 10),
-        if (!status.hasSubscription)
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppTheme.warning.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(AppTheme.rSm),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.info_outline_rounded, color: AppTheme.warning),
-                const SizedBox(width: 10),
-                const Expanded(
-                  child: Text('An active subscription is required to join.',
-                      style: TextStyle(color: AppTheme.warning)),
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: scheme.primary.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(AppTheme.rSm),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.auto_awesome_rounded, color: scheme.primary),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  "The programme is invite-only. Our team reviews applications and "
+                  "personally selects ambassadors — if you're picked, your account "
+                  "gets activated for you.",
+                  style: TextStyle(color: scheme.primary, height: 1.4),
                 ),
-              ],
-            ),
-          )
-        else
-          GradientButton(
-            label: 'Join the Ambassador Programme',
-            loading: _joining,
-            onPressed: _joining ? null : _join,
+              ),
+            ],
           ),
-        if (!status.hasSubscription) ...[
-          const SizedBox(height: 12),
-          OutlinedButton(
-            onPressed: () => launchUrl(Uri.parse('${AppConfig.siteUrl}/pricing/'),
-                mode: LaunchMode.externalApplication),
-            child: const Text('Subscribe now'),
-          ),
-        ],
+        ),
         if (tier1 != null) ...[
           const SizedBox(height: 20),
           const SectionHeader(title: 'Perks at LearnHub Ambassador'),

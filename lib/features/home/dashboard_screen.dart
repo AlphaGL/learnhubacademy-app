@@ -11,6 +11,7 @@ import '../../shared/widgets/skeletons.dart';
 import '../ai_tutor/ai_tutor_screen.dart';
 import '../cgpa/cgpa_calculator_screen.dart';
 import '../docstudio/docstudio_home_screen.dart';
+import '../foundation/foundation_home_screen.dart';
 import '../studynotes/studynotes_home_screen.dart';
 import '../insights/weak_topics_screen.dart';
 import '../flashcards/flashcards_screen.dart';
@@ -206,6 +207,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: AppTheme.brand,
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const StudyNotesHomeScreen()),
+              ),
+            ),
+            _ActionTile(
+              icon: Icons.school_rounded,
+              title: 'JUPEB & Pre-Degree',
+              subtitle: 'Not in university yet? Study notes & past questions for you too',
+              color: AppTheme.gold,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const FoundationHomeScreen()),
               ),
             ),
             const SizedBox(height: 16),

@@ -102,7 +102,7 @@ class _AmbassadorPayoutsScreenState extends State<AmbassadorPayoutsScreen> {
                       ),
                     if (result.hasBankDetails && !result.hasOpenRequest && !result.canRequest) ...[
                       const SizedBox(height: 8),
-                      Text('Minimum payout is ₦${result.minPayout}.',
+                      Text("You don't have any confirmed earnings to pay out yet.",
                           style: TextStyle(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                               fontSize: 12.5)),

@@ -176,7 +176,7 @@ class CbtQuestionModel {
 }
 
 /// Mirrors studynotes/views.py — upload a PDF, AI reads and summarizes it.
-/// Subscriber-only (no pay-per-use, unlike Document Studio), and capped at
+/// Subscriber-only (no pay-per-use, unlike Assignment Center), and capped at
 /// one summary a day per student to bound Gemini token spend on
 /// document-sized input. Also covers the Level/Course library: publishing
 /// an already-summarized note with an AI-generated CBT or Theory test, and

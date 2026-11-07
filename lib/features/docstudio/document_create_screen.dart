@@ -15,7 +15,6 @@ class DocumentCreateScreen extends StatefulWidget {
 class _DocumentCreateScreenState extends State<DocumentCreateScreen> {
   final _titleController = TextEditingController();
   final _topicController = TextEditingController();
-  final _instructionsController = TextEditingController();
   late List<TextEditingController> _sectionControllers;
   bool _creating = false;
 
@@ -34,7 +33,6 @@ class _DocumentCreateScreenState extends State<DocumentCreateScreen> {
   void dispose() {
     _titleController.dispose();
     _topicController.dispose();
-    _instructionsController.dispose();
     for (final c in _sectionControllers) {
       c.dispose();
     }
@@ -61,7 +59,7 @@ class _DocumentCreateScreenState extends State<DocumentCreateScreen> {
 
     if (title.isEmpty || topic.isEmpty) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Please add a title and topic.')));
+          .showSnackBar(const SnackBar(content: Text('Please add a title and extra instructions.')));
       return;
     }
     if (sectionTitles.isEmpty) {
@@ -76,7 +74,7 @@ class _DocumentCreateScreenState extends State<DocumentCreateScreen> {
         typeSlug: widget.documentType.slug,
         title: title,
         topic: topic,
-        instructions: _instructionsController.text.trim(),
+        instructions: '',
         sectionTitles: sectionTitles,
       );
       if (mounted) {
@@ -108,18 +106,12 @@ class _DocumentCreateScreenState extends State<DocumentCreateScreen> {
           const SizedBox(height: 14),
           TextField(
             controller: _topicController,
-            decoration: const InputDecoration(
-              labelText: 'Topic',
-              hintText: 'e.g. Impact of mobile banking on rural farmers',
-            ),
-          ),
-          const SizedBox(height: 14),
-          TextField(
-            controller: _instructionsController,
             maxLines: 3,
             decoration: const InputDecoration(
-              labelText: 'Instructions (optional)',
-              hintText: 'Any specific requirements, style, or focus area',
+              labelText: 'Extra instructions',
+              hintText: "Describe what it's about and any specifics — e.g. Department of "
+                  'Computer Science, 300 level, formal tone, focus on practical '
+                  'implementation. The more detail, the better the draft.',
             ),
           ),
           const SizedBox(height: 20),

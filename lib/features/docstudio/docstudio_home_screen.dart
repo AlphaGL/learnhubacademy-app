@@ -7,6 +7,7 @@ import '../../core/services/docstudio_api_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_widgets.dart';
 import '../../shared/widgets/skeletons.dart';
+import '../ai_tutor/ai_tutor_screen.dart';
 import 'document_create_screen.dart';
 import 'document_editor_screen.dart';
 
@@ -16,9 +17,9 @@ IconData docTypeIcon(String slug) {
   switch (slug) {
     case 'thesis-project':
       return Icons.school_rounded;
-    case 'report':
+    case 'essay-report':
       return Icons.bar_chart_rounded;
-    case 'essay-assignment':
+    case 'classwork-assignment':
       return Icons.edit_note_rounded;
     case 'presentation':
       return Icons.slideshow_rounded;
@@ -67,7 +68,7 @@ class _DocStudioHomeScreenState extends State<DocStudioHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Document Studio')),
+      appBar: AppBar(title: const Text('Assignment Center')),
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
@@ -82,7 +83,7 @@ class _DocStudioHomeScreenState extends State<DocStudioHomeScreen> {
                 if (snap.hasError) {
                   return EmptyState(
                     icon: Icons.cloud_off_rounded,
-                    title: 'Could not load Document Studio',
+                    title: 'Could not load Assignment Center',
                     message: snap.error.toString(),
                     onRetry: () => setState(() => _typesFuture = DocStudioApiService.instance.types()),
                   );
@@ -142,10 +143,14 @@ class _DocStudioHomeScreenState extends State<DocStudioHomeScreen> {
                         for (final type in result.types)
                           _TypeCard(
                             type: type,
-                            onTap: () => Navigator.of(context)
-                                .push(MaterialPageRoute(
-                                    builder: (_) => DocumentCreateScreen(documentType: type)))
-                                .then((_) => _refresh()),
+                            onTap: () => type.slug == 'classwork-assignment'
+                                ? Navigator.of(context)
+                                    .push(MaterialPageRoute(builder: (_) => const AiTutorScreen()))
+                                    .then((_) => _refresh())
+                                : Navigator.of(context)
+                                    .push(MaterialPageRoute(
+                                        builder: (_) => DocumentCreateScreen(documentType: type)))
+                                    .then((_) => _refresh()),
                           ),
                       ],
                     ),

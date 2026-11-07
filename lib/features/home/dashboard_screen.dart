@@ -193,7 +193,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             _ActionTile(
               icon: Icons.auto_awesome_rounded,
-              title: 'Document Studio',
+              title: 'Assignment Center',
               subtitle: 'AI-drafted projects, reports & slides — edit and download',
               color: AppTheme.gold,
               onTap: () => Navigator.of(context).push(

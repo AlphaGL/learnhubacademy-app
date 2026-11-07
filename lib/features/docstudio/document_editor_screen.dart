@@ -293,7 +293,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               const Text('Subscription required',
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18)),
               const SizedBox(height: 6),
-              const Text('Document Studio is a subscriber-only feature — your subscription isn\'t active right now.',
+              const Text('Assignment Center is a subscriber-only feature — your subscription isn\'t active right now.',
                   style: TextStyle(color: Colors.white70)),
               const SizedBox(height: 16),
               GradientButton(
